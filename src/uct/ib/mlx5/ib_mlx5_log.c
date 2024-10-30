@@ -168,6 +168,13 @@ ucs_status_t uct_ib_mlx5_completion_with_err(uct_ib_iface_t *iface,
                  uct_ib_mlx5_cqe_err_opcode(ecqe));
     }
 
+    {
+        volatile int stop = 1;
+        printf("<<< Stooped exec during failure >>>\n");
+        while(stop) {
+            sleep(1);
+        }
+    }
     ucs_log(log_level,
             "%s on " UCT_IB_IFACE_FMT " (synd 0x%x vend 0x%x hw_synd %d/%d)\n"
             "%s QP 0x%x wqe[%d]: %s %s",

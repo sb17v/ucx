@@ -473,6 +473,9 @@ uct_ib_md_reg_mr(uct_ib_md_t *md, void *address, size_t length,
                             dmabuf_offset, memh, mr_type, silent);
 }
 
+// static int reg_cnt = 0;
+// static size_t total_len = 0;
+
 ucs_status_t uct_ib_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
                            uint64_t access, int dmabuf_fd, size_t dmabuf_offset,
                            struct ibv_mr **mr_p, int silent)
@@ -483,7 +486,10 @@ ucs_status_t uct_ib_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
 
     if (dmabuf_fd == UCT_DMABUF_FD_INVALID) {
         title = "ibv_reg_mr";
+        // total_len += length;
         mr    = UCS_PROFILE_CALL_ALWAYS(ibv_reg_mr, pd, addr, length, access);
+        // printf("ibv_reg_mr(addr=%p, length=%zd, Total_len: %zd) - %d >>> Access:: %ld/%ld/%ld\n", addr, length, total_len, ++reg_cnt, (access & IBV_ACCESS_RELAXED_ORDERING), (access & IBV_ACCESS_HUGETLB),
+        // (access & IBV_ACCESS_ON_DEMAND));
     } else {
 #if HAVE_DECL_IBV_REG_DMABUF_MR
         title = "ibv_reg_dmabuf_mr";
@@ -521,6 +527,8 @@ ucs_status_t uct_ib_dereg_mr(struct ibv_mr *mr)
               mr->length);
 
     ret = UCS_PROFILE_CALL(ibv_dereg_mr, mr);
+    // total_len -= mr->length;
+    // printf("ibv_dereg_mr(addr=%p, size=%zd, Total_len: %zd) - %d\n", mr->addr, mr->length, total_len, --reg_cnt);
     if (ret != 0) {
         ucs_error("ibv_dereg_mr() failed: %m");
         return UCS_ERR_IO_ERROR;
